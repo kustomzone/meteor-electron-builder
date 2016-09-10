@@ -887,11 +887,6 @@
       "resolved": "https://registry.npmjs.org/macaddress/-/macaddress-0.2.8.tgz",
       "from": "macaddress@>=0.2.7 <0.3.0"
     },
-    "macos-alias": {
-      "version": "0.2.9",
-      "resolved": "https://registry.npmjs.org/macos-alias/-/macos-alias-0.2.9.tgz",
-      "from": "macos-alias@>=0.2.5 <0.3.0"
-    },
     "map-obj": {
       "version": "1.0.1",
       "resolved": "https://registry.npmjs.org/map-obj/-/map-obj-1.0.1.tgz",
