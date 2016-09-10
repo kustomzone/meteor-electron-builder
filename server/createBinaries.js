@@ -49,12 +49,19 @@ const createBinaries = new Promise((resolve, reject) => {
   devSettings.electronVersion = '1.3.5';
   devSettings.projectDir = projectDir;
   _.set(devSettings, 'devMetadata.directories.app', path.join(projectDir, 'app'));
+  let buildResourcesDir = _.get(devSettings, 'devMetadata.directories.buildResources');
+  if (!buildResourcesDir) {
+    buildResourcesDir = path.join(projectDir, 'buildResources');
+  } else {
+    buildResourcesDir = path.join(projectRoot(), buildResourcesDir);
+  }
+  _.set(devSettings, 'devMetadata.directories.buildResources', buildResourcesDir);
+
   if (!_.has(devSettings, 'devMetadata.directories.output')) {
     _.set(devSettings, 'devMetadata.directories.output', path.join(projectDir, 'output'));
   }
   devSettings.targets = createTargets(devSettings.targets);
   const appDir = devSettings.devMetadata.directories.app;
-  const buildResourcesDir = devSettings.devMetadata.directories.buildResources;
   const outputDir = devSettings.devMetadata.directories.output;
 
   if (_.isEmpty(devSettings.targets)) {
