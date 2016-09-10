@@ -1,12 +1,11 @@
-// var BrowserWindow = require('browser-window');
-var BrowserWindow = require('electron').BrowserWindow;
-var Menu = require('electron').Menu;
+const BrowserWindow = require('electron').BrowserWindow;
+const Menu = require('electron').Menu;
 
 /**
  * Creates a default menu. Modeled after https://github.com/atom/electron/pull/1863, augmented with
  * the roles from https://github.com/atom/electron/blob/master/docs/api/menu.md.
  */
-var createDefaultMenu = function(app, getMainWindow, checkForUpdates) {
+const createDefaultMenu = function (app, getMainWindow, checkForUpdates) {
   app.once('ready', function() {
     var template;
     if (process.platform == 'darwin') {

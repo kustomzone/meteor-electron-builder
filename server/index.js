@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'development') {
   // Promise is returned
   createBinaries
     .then(packageJSON => {
-      if (packageJSON) launchApp(packageJSON);
+      if (packageJSON && settings.autoRun) launchApp(packageJSON);
     })
     .catch(err => console.error(err));
 }

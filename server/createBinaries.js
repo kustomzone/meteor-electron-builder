@@ -33,10 +33,10 @@ const createBinaries = new Promise((resolve, reject) => {
   /* Write out Electron Settings */
   const defaults = {
     name: (electronSettings.name || 'electron').toLowerCase().replace(/\s/g, '-'),
-  };
-  const appSettings = _.defaults(defaultAppSettings, defaults, electronSettings, {
+    productName: electronSettings.name || 'electron',
     rootUrl: process.env.ROOT_URL,
-  });
+  };
+  const appSettings = _.defaults(defaultAppSettings, defaults, electronSettings);
 
   const projectDir = path.join(projectRoot(), '.meteor-electron');
   const devSettings = _.defaults(electronBuilderSettings, {
@@ -52,13 +52,13 @@ const createBinaries = new Promise((resolve, reject) => {
   if (!_.has(devSettings, 'devMetadata.directories.output')) {
     _.set(devSettings, 'devMetadata.directories.output', path.join(projectDir, 'output'));
   }
-  devSettings.targets = createTargets(devSettings.targets, devSettings.autoRun);
+  devSettings.targets = createTargets(devSettings.targets);
   const appDir = devSettings.devMetadata.directories.app;
   const buildResourcesDir = devSettings.devMetadata.directories.buildResources;
   const outputDir = devSettings.devMetadata.directories.output;
 
   if (_.isEmpty(devSettings.targets)) {
-    console.error('No builds available for this platform.');
+    return reject('No builds available for this platform.');
   }
 
   let buildRequired = false;

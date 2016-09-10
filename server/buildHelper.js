@@ -50,10 +50,15 @@ export const dirHasChanged = (srcDir, checksum) => {
   return hasChanged;
 };
 
-export const createTargets = (targets = [], current) => {
-  let t = current ? new Map([...Platform.current().createTarget()]) : new Map();
+export const createTargets = (targets = []) => {
+  let t = new Map();
   _.forEach(targets, target => {
-    const nextTarget = Platform[target].createTarget();
+    let nextTarget;
+    if (target === 'CURRENT') {
+      nextTarget = Platform.current().createTarget();
+    } else {
+      nextTarget = Platform[target].createTarget();
+    }
     t = new Map([...nextTarget, ...t]);
   });
   return t;

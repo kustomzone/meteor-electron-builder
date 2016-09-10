@@ -1,38 +1,34 @@
-var app = require('electron').app; // Module to control application life.
-var childProcess = require("child_process");
-var path = require("path");
-var fs = require("fs");
+/* eslint-disable no-console */
+const app = require('electron').app; // Module to control application life.
+const spawn = require('child_process').spawn;
+const path = require('path');
+const fs = require('fs');
+const BrowserWindow = require('electron').BrowserWindow; // Module to create native browser window.
+const autoUpdater = require('./autoUpdater');
+const createDefaultMenu = require('./menu.js');
+const proxyWindowEvents = require('./proxyWindowEvents');
+const _ = require('lodash');
+require('electron-debug')({ showDevTools: false });
 
-// var log = function(msg){
-//   fs.appendFile("C:\\Users\\Michael\\electron.log", msg + "\n", function(err){
-//     if (err){
-//       throw err;
-//     }
-//   })
-// };
+const settings = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8'));
 
-var log = function(){};
+function run(args, done) {
+  const updateDotExe = path.resolve(path.dirname(process.execPath), '..', 'update.exe');
+  const child = spawn(updateDotExe, args, { detached: true });
+  child.on('close', done);
+}
 
-var installShortcut = function(callback){
-  var updateDotExe = path.resolve(path.dirname(process.execPath), '..', 'update.exe');
-  var child = childProcess.spawn(updateDotExe, ["--createShortcut", "mixmax.exe"], { detached: true });
-  child.on('close', function(code) {
-    callback();
-  });
-};
+const handleStartupEvent = () => {
+  var result = false;
 
-var handleStartupEvent = function() {
-  if (process.platform !== 'win32') {
-    return false;
-  }
+  if (process.platform !== 'win32') return false;
 
-  var squirrelCommand = process.argv[1];
+  const squirrelCommand = process.argv[1];
+  const target = path.basename(process.execPath);
   switch (squirrelCommand) {
     case '--squirrel-install':
-      log("SQUIRREL INSTALL");
-
     case '--squirrel-updated':
-      log("SQUIRREL UPDATED");
+      console.info('SQUIRREL INSTALL/UPDATE');
       // Optionally do things such as:
       //
       // - Install desktop and start menu shortcuts
@@ -41,129 +37,69 @@ var handleStartupEvent = function() {
       //   explorer context menus
 
       // Always quit when done
-      installShortcut(function(){
-        app.quit();
-      })
-
-      return true;
+      run(['--createShortcut', target], app.quit);
+      result = true;
+      break;
     case '--squirrel-uninstall':
-      log("SQUIRREL UNINSTALL");
+      console.info('SQUIRREL UNINSTALL');
 
       // Undo anything you did in the --squirrel-install and
       // --squirrel-updated handlers
 
       // Always quit when done
+      run(['--removeShortcut', target], app.quit);
       app.quit();
-
-      return true;
+      result = true;
+      break;
     case '--squirrel-obsolete':
-      log("SQUIRREL OBSOLETE");
+      console.info('SQUIRREL OBSOLETE');
       // This is called on the outgoing version of your app before
       // we update to the new version - it's the opposite of
       // --squirrel-updated
       app.quit();
-      return true;
+      result = true;
+      break;
+    default:
+      result = false;
   }
+  return result;
 };
 
-app.on("window-all-closed", function(){
-  if (process.platform !== "darwin"){
-    app.quit();
-  }
-})
+if (handleStartupEvent()) return;
 
-if (handleStartupEvent()) {
-  return;
-}
-
-var BrowserWindow = require('electron').BrowserWindow; // Module to create native browser window.
-var autoUpdater = require('./autoUpdater');
-var path = require("path");
-var fs = require("fs");
-var createDefaultMenu = require('./menu.js');
-var proxyWindowEvents = require('./proxyWindowEvents');
-
-require('electron-debug')({
-    showDevTools: false
-});
-
-var electronSettings = JSON.parse(fs.readFileSync(
-  path.join(__dirname, "package.json"), "utf-8"));
-
-var checkForUpdates;
-if (electronSettings.updateFeedUrl) {
-  autoUpdater.setFeedURL(electronSettings.updateFeedUrl + '?version=' + electronSettings.version);
-  autoUpdater.checkForUpdates();
-  checkForUpdates = function() {
-    autoUpdater.checkForUpdates(true /* userTriggered */);
-  };
-}
-
-var launchUrl = electronSettings.rootUrl;
-if (electronSettings.launchPath) {
-  launchUrl += electronSettings.launchPath;
-}
-
-var windowOptions = {
-  width: electronSettings.width || 800,
-  height: electronSettings.height || 600,
+const windowOptions = _.defaults(settings.windowOptions, {
+  width: settings.width || 800,
+  height: settings.height || 600,
   resizable: true,
   frame: true,
-  title: app.getName(),
-  /**
-   * Disable Electron's Node integration so that browser dependencies like `moment` will load themselves
-   * like normal i.e. into the window rather than into modules, and also to prevent untrusted client
-   * code from having access to the process and file system:
-   *  - https://github.com/atom/electron/issues/254
-   *  - https://github.com/atom/electron/issues/1753
-   */
-  webPreferences: {
-    nodeIntegration: false,
-    // See comments at the top of `preload.js`.
-    preload: path.join(__dirname, 'preload.js')
-  }
-};
+  title: settings.name,
+});
 
-if (electronSettings.resizable === false){
-  windowOptions.resizable = false;
-}
 
-if (electronSettings['title-bar-style']) {
-  windowOptions['title-bar-style'] = electronSettings['title-bar-style'];
-}
-
-if (electronSettings.minWidth) {
-  windowOptions.minWidth = electronSettings.minWidth;
-}
-
-if (electronSettings.maxWidth) {
-  windowOptions.maxWidth = electronSettings.maxWidth;
-}
-
-if (electronSettings.minHeight) {
-  windowOptions.minHeight = electronSettings.minHeight;
-}
-
-if (electronSettings.maxHeight) {
-  windowOptions.maxHeight = electronSettings.maxHeight;
-}
-
-if (electronSettings.frame === false){
-  windowOptions.frame = false;
-}
+/**
+ * Disable Electron's Node integration so that browser dependencies like `moment` will load themselves
+ * like normal i.e. into the window rather than into modules, and also to prevent untrusted client
+ * code from having access to the process and file system:
+ *  - https://github.com/atom/electron/issues/254
+ *  - https://github.com/atom/electron/issues/1753
+ */
+_.set(windowOptions, 'webPreferences.nodeIntegration', false);
+_.set(windowOptions, 'webPreferences.preload', path.join(__dirname, 'preload.js'));
 
 // Keep a global reference of the window object so that it won't be garbage collected
 // and the window closed.
 var mainWindow = null;
-var getMainWindow = function() {
-  return mainWindow;
-};
 
 // Unfortunately, we must set the menu before the application becomes ready and so before the main
 // window is available to be passed directly to `createDefaultMenu`.
-createDefaultMenu(app, getMainWindow, checkForUpdates);
+createDefaultMenu(app, () => mainWindow, () => autoUpdater.checkForUpdates(true));
 
-app.on("ready", function(){
+const hideInsteadofClose = e => {
+  mainWindow.hide();
+  e.preventDefault();
+};
+
+app.on('ready', () => {
   mainWindow = new BrowserWindow(windowOptions);
   proxyWindowEvents(mainWindow);
 
@@ -171,26 +107,24 @@ app.on("ready", function(){
   // more quickly.
   mainWindow.on('close', hideInsteadofClose);
 
-  if (electronSettings.maximize) {
-    mainWindow.maximize();
-  }
-
+  if (settings.maximize) mainWindow.maximize();
   mainWindow.focus();
-  mainWindow.loadURL(launchUrl);
+  mainWindow.loadURL(settings.rootUrl);
 });
 
-var hideInsteadofClose = function(e) {
-  mainWindow.hide();
-  e.preventDefault();
-};
-
-app.on("before-quit", function(){
+app.on('before-quit', () => {
   // We need to remove our close event handler from the main window,
   // otherwise the app will not quit.
   mainWindow.removeListener('close', hideInsteadofClose);
 });
 
-app.on("activate", function(){
+app.on('activate', () => {
   // Show the main window when the customer clicks on the app icon.
   if (!mainWindow.isVisible()) mainWindow.show();
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
