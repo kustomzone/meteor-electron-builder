@@ -34,9 +34,11 @@ const createBinaries = new Promise((resolve, reject) => {
   const defaults = {
     name: (electronSettings.name || 'electron').toLowerCase().replace(/\s/g, '-'),
     productName: electronSettings.name || 'electron',
-    rootUrl: process.env.ROOT_URL,
   };
-  const appSettings = _.defaults(defaultAppSettings, defaults, electronSettings);
+
+  const appSettings = _.defaults(defaultAppSettings, defaults, electronSettings, {
+    rootUrl: process.env.ROOT_URL,
+  });
 
   const projectDir = path.join(projectRoot(), '.meteor-electron');
   const devSettings = _.defaults(electronBuilderSettings, {
