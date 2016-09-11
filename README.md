@@ -59,7 +59,7 @@ Configuration is possible via `Meteor.settings.electron` and `Meteor.settings.el
     }
   },
 ```
-### electron
+#### electron
 
 <dl>
   <dt>...</dt>
@@ -76,7 +76,7 @@ Configuration is possible via `Meteor.settings.electron` and `Meteor.settings.el
 
 *This file gets saved to project/app/package.json*
 
-### electronBuilder
+#### electronBuilder
 
 <dl>
   <dt>targets</dt>
