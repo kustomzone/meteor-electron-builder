@@ -8,8 +8,8 @@ const os = require('os');
 
 const settings = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8'));
 const feedURL = settings.feedURL;
-const version = settings.version;
-const updateURL = `${feedURL}/update/${os.platform()}_${os.arch()}/${version}`;
+const updateURL = `${feedURL}/update/${os.platform()}_${os.arch()}/${app.getVersion()}`;
+
 try {
   autoUpdater.setFeedURL(updateURL);
 } catch (e) {
