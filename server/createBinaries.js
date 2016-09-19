@@ -24,7 +24,7 @@ const electronBuilderSettings = Meteor.settings.electronBuilder || {};
 
 /* Entry Point */
 const createBinaries = new Promise((resolve, reject) => {
-  const resolvedAppSrcDir = path.join(process.cwd(), 'assets', 'packages', 'risetechnologies_electron', 'app');
+  const resolvedAppSrcDir = path.join(process.cwd(), 'assets', 'packages', 'risetechnologies_electron-builder', 'app');
   const resolvedAppSettingsPath = path.join(resolvedAppSrcDir, 'package.json');
 
   // Check if the package.json has changed before copying over the app files, to account for
@@ -40,10 +40,11 @@ const createBinaries = new Promise((resolve, reject) => {
     rootUrl: process.env.ROOT_URL,
   });
 
-  const projectDir = path.join(projectRoot(), '.meteor-electron');
+  const projectDir = path.join(projectRoot(), '.meteor-electron-builder');
   const devSettings = _.defaults(electronBuilderSettings, {
     devMetadata: {},
     projectDir,
+    targets: ["CURRENT"]
   });
 
   // enforce some fields
@@ -72,6 +73,9 @@ const createBinaries = new Promise((resolve, reject) => {
 
   let buildRequired = false;
   let didOverwriteNodeModules = false;
+
+  // make sure the app directory exists which will also create the project directory if not existing
+  mkdirp.sync(appDir);
 
   // Check if the package has changed before we possibly copy over the app source since that will
   // of course sync `package.json`.

@@ -1,10 +1,10 @@
-/* global Package:false, Npm:false */
+/* global Package, Npm */
 
 Package.describe({
-  name: 'risetechnologies:electron',
-  summary: 'Electron',
+  name: 'risetechnologies:electron-builder',
+  summary: 'A meteor wrapper around electron builder',
   version: '0.1.0',
-  git: 'https://github.com/risetechnologies/meteor-electron',
+  git: 'https://github.com/risetechnologies/meteor-electron-builder',
 });
 
 Npm.depends({
@@ -19,7 +19,7 @@ Npm.depends({
 
 Package.onUse(api => {
   api.versionsFrom('METEOR@1.3');
-  api.use(['mongo-livedata', 'ejson', 'promise'], 'server');
+  api.use(['mongo', 'ejson', 'promise'], 'server');
   api.use(['modules', 'ecmascript'], ['server', 'client']);
 
   api.addAssets([
