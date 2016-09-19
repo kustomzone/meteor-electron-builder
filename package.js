@@ -3,12 +3,12 @@
 Package.describe({
   name: 'risetechnologies:electron',
   summary: 'Electron',
-  version: '0.2.0',
+  version: '0.1.0',
   git: 'https://github.com/risetechnologies/meteor-electron',
 });
 
 Npm.depends({
-  'electron-builder': '6.5.2',
+  'electron-builder': '7.0.0',
   lodash: '4.15.0',
   'is-running': '1.0.5',
   'lucy-dirsum': '0.1.1',
