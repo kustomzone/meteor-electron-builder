@@ -3,9 +3,22 @@ import { spawn } from 'child_process';
 import path from 'path';
 import { Mongo } from 'meteor/mongo';
 import { Meteor } from 'meteor/meteor';
+import fs from 'fs';
 
 const isRunning = Meteor.wrapAsync(_isRunning);
 const ElectronProcesses = new Mongo.Collection('processes');
+
+const appExists = appPath => {
+  try {
+    return fs.statSync(appPath).isFile();
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return false;
+    } else {
+      throw e;
+    }
+  }
+};
 
 const ProcessManager = {
   add: pid => {
@@ -55,11 +68,15 @@ const launchApp = buildInfo => {
     throw new Error(`unsupported platform: ${process.platform}`);
   }
 
-  const child = spawn(binaryPath, args);
-  child.stdout.on('data', data => console.log('ATOM:', data.toString()));
-  child.stderr.on('data', data => console.error('ATOM:', data.toString()));
+  if (appExists(binaryPath)) {
+    const child = spawn(binaryPath, args);
+    child.stdout.on('data', data => console.log('ATOM:', data.toString()));
+    child.stderr.on('data', data => console.error('ATOM:', data.toString()));
 
-  ProcessManager.add(child.pid);
+    ProcessManager.add(child.pid);
+  } else {
+    console.error(`could not find an executable binary on ${binaryPath}, skipping app launch`)
+  }
 };
 
 export default launchApp;
