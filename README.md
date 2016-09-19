@@ -112,17 +112,6 @@ the app icon, to add a menu bar icon, etc.&mdash;you'll need to distribute a new
 
 Please refer to https://github.com/electron-userland/electron-builder/wiki as this projects tries to let electron-builder to all the heavy lifting. We also advise to use https://github.com/GitbookIO/nuts as an autoupdate server.
 
-## Example
-
-[TODO] enhance readme
-[TODO] link to an example app
-[TODO] add proper linting rules
-[TODO] release on atmosphere
-[TODO] test on windows
-[TODO] test on linux
-[TODO] enable autorun on linux
-[TODO] test if custom appsrc works
-
 ## Q&A
 ### Q: How is this different from https://github.com/electron-webapps/meteor-electron?
 
