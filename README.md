@@ -15,7 +15,7 @@ Some of the things it does:
 
 ## Getting Started
 
-`meteor add risetechnologies:electron-builder` (to be done)
+`meteor add risetechnologies:electron-builder`
 
 electron-builder will download the Electron binary for your system and build and launch an Electron
 app pointing to your local development server. The download process may take a few minutes based on
