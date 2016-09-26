@@ -3,7 +3,7 @@
 Package.describe({
   name: 'risetechnologies:electron-builder',
   summary: 'A meteor wrapper around electron builder',
-  version: '0.1.0',
+  version: '0.1.1',
   git: 'https://github.com/risetechnologies/meteor-electron-builder',
 });
 
