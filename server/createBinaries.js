@@ -33,7 +33,7 @@ const createBinaries = new Promise((resolve, reject) => {
   /* Write out Electron Settings */
   const defaults = {
     name: (electronSettings.name || 'electron').toLowerCase().replace(/\s/g, '-'),
-    productName: electronSettings.productName || 'electron',
+    productName: electronSettings.productName || electronSettings.name || 'electron',
   };
 
   const appSettings = _.defaults(defaultAppSettings, defaults, electronSettings, {
