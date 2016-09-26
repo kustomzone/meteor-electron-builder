@@ -33,7 +33,7 @@ const createBinaries = new Promise((resolve, reject) => {
   /* Write out Electron Settings */
   const defaults = {
     name: (electronSettings.name || 'electron').toLowerCase().replace(/\s/g, '-'),
-    productName: electronSettings.name || 'electron',
+    productName: electronSettings.productName || 'electron',
   };
 
   const appSettings = _.defaults(defaultAppSettings, defaults, electronSettings, {
@@ -48,8 +48,8 @@ const createBinaries = new Promise((resolve, reject) => {
   });
 
   // enforce some fields
-  devSettings.devDependencies = { electron: '1.3.5' };
-  devSettings.electronVersion = '1.3.5';
+  devSettings.electronVersion = '1.3.6';
+  devSettings.devDependencies = { electron: devSettings.electronVersion };
   devSettings.projectDir = projectDir;
   _.set(devSettings, 'devMetadata.directories.app', path.join(projectDir, 'app'));
   let buildResourcesDir = _.get(devSettings, 'devMetadata.directories.buildResources');
@@ -123,6 +123,7 @@ const createBinaries = new Promise((resolve, reject) => {
   const buildInfo = {
     output: outputDir,
     name: appSettings.name,
+    productName: appSettings.productName,
     buildRequired: buildRequired && devSettings.autoRun,
   };
 
