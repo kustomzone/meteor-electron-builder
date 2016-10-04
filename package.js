@@ -23,6 +23,8 @@ Package.onUse(api => {
   api.use(['modules', 'ecmascript'], ['server', 'client']);
 
   api.addAssets([
+    'app/loading.html',
+    'app/createApp.js',
     'app/AppUpdater.js',
     'app/winSquirrelStartupEventHandler.js',
     'app/main.js',

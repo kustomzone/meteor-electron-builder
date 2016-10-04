@@ -48,7 +48,7 @@ const createBinaries = new Promise((resolve, reject) => {
   });
 
   // enforce some fields
-  devSettings.electronVersion = '1.3.6';
+  devSettings.electronVersion = '1.4.1';
   devSettings.devDependencies = { electron: devSettings.electronVersion };
   devSettings.projectDir = projectDir;
   _.set(devSettings, 'devMetadata.directories.app', path.join(projectDir, 'app'));

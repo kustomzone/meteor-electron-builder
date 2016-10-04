@@ -8,11 +8,8 @@
  * In particular, do not save the following variables as properties of `ElectronImplementation`.
  * See https://github.com/atom/electron/issues/1753#issuecomment-104719851.
  */
-var _ = require('lodash');
-var ipc = require('electron').ipcRenderer;
-var remote = require('electron').remote;
-var shell = require('electron').shell;
-var desktopCapturer = require('electron').desktopCapturer;
+const _ = require('lodash');
+const { ipcRenderer, remote, shell, desktopCapturer } = require('electron');
 
 /**
  * Defines methods with which to extend the `Electron` module defined in `client.js`.
@@ -38,9 +35,7 @@ ElectronImplementation = {
    *
    * @return {Boolean} `true` if the browser window is in fullscreen mode, `false` otherwise.
    */
-  isFullScreen: function() {
-    return remote.getCurrentWindow().isFullScreen();
-  },
+  isFullScreen: remote.getCurrentWindow().isFullScreen,
 
   /**
    * Invokes _callback_ when the specified `BrowserWindow` event is fired.
@@ -59,33 +54,37 @@ ElectronImplementation = {
    * @param {Function} callback - A function to invoke when `event` is triggered. Takes no arguments
    *   and returns no value.
    */
-  onWindowEvent: function(event, callback) {
-    this.onEvent(event, callback);
-    ipc.send('observe-window-event', event);
-  },
-
-  /**
-   * Invokes _callback_ when the specified IPC event is fired.
-   *
-   * @param {String} event - The name of an event.
-   * @param {Function} callback - A function to invoke when `event` is triggered. Takes no arguments
-   *   and returns no value.
-   */
-  onEvent: function(event, callback) {
-    var listeners = this._eventListeners[event];
-    if (!listeners) {
-      listeners = this._eventListeners[event] = [];
-      ipc.on(event, function() {
-        _.invoke(listeners, 'call');
+  _windowEventListeners: {},
+  onWindowEvent: function onWindowEvent(event, callback) {
+    if (!this._windowEventListeners[event]) {
+      this._windowEventListeners[event] = [callback];
+      ipcRenderer.on(event, (e, from) => {
+        if (from === 'observe-window-event') _.invokeMap(this._windowEventListeners[event], 'call', e);
       });
+    } else {
+      this._windowEventListeners[event].push(callback);
     }
-    listeners.push(callback);
+    ipcRenderer.send('observe-window-event', event);
   },
 
-  _eventListeners: {},
+  _webContentEventListeners: {},
+  onWebContentEvent: function onWebContentEvent(event, callback) {
+    if (!this._webContentEventListeners[event]) {
+      this._webContentEventListeners[event] = [callback];
+      ipcRenderer.on(event, (e, from) => {
+        if (from === 'observe-webContent-event') _.invokeMap(this._webContentEventListeners[event], 'call', e);
+      });
+    } else {
+      this._webContentEventListeners[event].push(callback);
+    }
+    ipcRenderer.send('observe-webContent-event', event);
+  },
+
+  // todo cleanup listeners when the channel is closed
 
   /**
    * Expose Electrons desktopCapturer API used to enable screen capture.
    */
-  desktopCapturer: desktopCapturer,
+  desktopCapturer,
+  ipcRenderer,
 };

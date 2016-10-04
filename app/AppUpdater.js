@@ -1,20 +1,6 @@
 /* eslint-disable no-console */
-const app = require('electron').app;
-const autoUpdater = require('electron').autoUpdater;
-const dialog = require('electron').dialog;
-const fs = require('fs');
-const path = require('path');
+const { app, autoUpdater, dialog } = require('electron');
 const os = require('os');
-
-const settings = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8'));
-const feedURL = settings.feedURL;
-const updateURL = `${feedURL}/update/${os.platform()}_${os.arch()}/${app.getVersion()}`;
-
-try {
-  autoUpdater.setFeedURL(updateURL);
-} catch (e) {
-  console.error(e);
-}
 
 // Daily.
 const SCHEDULED_CHECK_INTERVAL = 24 * 60 * 60 * 1000;
@@ -23,9 +9,7 @@ class AppUpdater {
   constructor() {
     const self = this;
 
-    if (os.platform() !== 'darwin') {
-      return;
-    }
+    if (os.platform() !== 'darwin') return;
 
     this._onUpdateDownloaded.bind(this);
     this._onUpdateError.bind(this);

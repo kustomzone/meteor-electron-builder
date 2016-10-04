@@ -1,10 +1,7 @@
 /* eslint-disable no-console */
-const app = require('electron').app; // Module to control application life.
-const spawn = require('child_process').spawn;
+const { app } = require('electron'); // Module to control application life.
+const { spawn } = require('child_process');
 const path = require('path');
-
-const _ = require('lodash');
-require('electron-debug')({ showDevTools: false });
 
 function run(args, done) {
   const updateDotExe = path.resolve(path.dirname(process.execPath), '..', 'update.exe');

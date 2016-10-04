@@ -1,5 +1,5 @@
-var _ = require('lodash');
-var ipc = require('electron').ipcMain;
+const _ = require('lodash');
+const { ipcMain } = require('electron');
 
 /**
  * Proxies `BrowserWindow` events to renderer processes as directed by those processes and in a way
@@ -21,25 +21,35 @@ var ipc = require('electron').ipcMain;
  *
  * @param {BrowserWindow} window - The window whose events to proxy.
  */
-var proxyWindowEvents = function(window) {
-  var eventsObserved = {};
+const proxyWindowEvents = window => {
+  var windowEventsObserved = {};
+  var webContentEventsObserved = {};
 
-  ipc.on('observe-window-event', function(event, arg) {
-    if ((event.sender === window.webContents) && !eventsObserved[arg]) {
-      eventsObserved[arg] = function() {
-        window.webContents.send(arg);
-      };
-      window.on(arg, eventsObserved[arg]);
+  ipcMain.on('observe-window-event', (event, arg) => {
+    if (event.sender === window.webContents && !windowEventsObserved[arg]) {
+      windowEventsObserved[arg] = () => window.webContents.send(arg, 'observe-window-event');
+      window.on(arg, () => windowEventsObserved[arg]);
+    }
+  });
+
+  ipcMain.on('observe-webContent-event', (event, arg) => {
+    if (event.sender === window.webContents && !webContentEventsObserved[arg]) {
+      webContentEventsObserved[arg] = () => window.webContents.send(arg, 'observe-webContent-event');
+      window.webContents.on(arg, webContentEventsObserved[arg]);
     }
   });
 
   // Clear our listeners when the page starts (re)loading i.e. its listeners have been purged.
   // TODO(wearhere): I'm not sure this is the right event for reload but it seems to work.
-  window.webContents.on('did-start-loading', function() {
-    _.forEach(eventsObserved, function(listener, event) {
+  window.webContents.on('did-start-loading', () => {
+    _.forEach(windowEventsObserved, (listener, event) => {
       window.removeListener(event, listener);
     });
-    eventsObserved = {};
+    _.forEach(webContentEventsObserved, (listener, event) => {
+      window.webContents.removeListener(event, listener);
+    });
+    windowEventsObserved = {};
+    webContentEventsObserved = {};
   });
 };
 

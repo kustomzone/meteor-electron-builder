@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background: #1565c0;
+            transition: background 1000ms linear;
+        }
+
+        #content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .spinner > div {
+            width: 24px;
+            height: 24px;
+            background-color: #fafafa;
+            border-radius: 100%;
+            display: inline-block;
+            animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+            transition: all 1s ease-in-out;
+        }
+
+        .spinnerDisabled > div {
+            width: 16px;
+            height: 16px;
+            background-color: #fafafa;
+            border-radius: 0;
+            display: inline-block;
+            transition: all 1s ease-in-out;
+        }
+
+        .spinner .bounce1 {
+            animation-delay: -0.32s;
+        }
+
+        .spinner .bounce2 {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes sk-bouncedelay {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1.0);
+            }
+        }
+
+        #loadingText {
+            margin: 16px;
+            color: rgba(250, 250, 250, 1);
+            animation: pulsate 3s ease-out;
+            animation-iteration-count: infinite;
+            font-family: sans-serif;
+            font-weight: 200;
+            font-size: 16pt;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .btn {
+            color: rgba(250, 250, 250, 0.54);
+            background-color: transparent;
+            opacity: 0;
+            font-family: sans-serif;
+            font-weight: 600;
+            transition: opacity 1s ease-in-out, color 300ms ease-in-out;
+            font-size: 12pt;
+            -webkit-font-smoothing: antialiased;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            visibility: hidden;
+        }
+
+        .btn:hover, .btn:focus {
+            color: rgba(250, 250, 250, 1);
+        }
+    </style>
+    <script>
+        const maxRetryTime = 60;
+        var lastRetryTime = 5;
+        var counter;
+
+        const reload = () => {
+            if (counter) clearInterval(counter);
+            lastRetryTime = 5;
+            ElectronImplementation.ipcRenderer.send('reload');
+        };
+
+        ElectronImplementation.ipcRenderer.on('did-start-loading', () => {
+            document.body.style.background = '#1565c0';
+            document.getElementById("loadingText").innerHTML = "loading";
+            document.getElementById("spinner").className = 'spinner';
+            document.getElementById("retryNow").style.opacity = 0;
+            document.getElementById("retryNow").style.visibility = 'hidden';
+        });
+
+        ElectronImplementation.ipcRenderer.on('did-finish-load', () => {
+            document.getElementById("loadingText").innerHTML = "starting";
+            lastRetryTime = 5;
+        });
+
+        ElectronImplementation.ipcRenderer.on('did-fail-load', (e, errorCode, errorDescription) => {
+            console.error(`could not connect: ${errorCode}: ${errorDescription}`);
+            document.body.style.background = '#ef6c00';
+            document.getElementById("loadingText").innerHTML = "could not connect to service";
+            document.getElementById("spinner").className = 'spinnerDisabled';
+            setTimeout(() => {
+                document.getElementById("retryNow").style.visibility = 'visible';
+                document.getElementById("retryNow").style.opacity = 1;
+            }, 3000);
+            if (lastRetryTime * 2 <= maxRetryTime) lastRetryTime *= 2;
+            var count = lastRetryTime;
+            counter = setInterval(timer, 1000);
+            function timer() {
+                count -= 1;
+                if (count <= 0) {
+                    clearInterval(counter);
+                    document.getElementById("loadingText").innerHTML = "retrying";
+                    ElectronImplementation.ipcRenderer.send('reload');
+                } else {
+                    document.getElementById("loadingText").innerHTML = `retry in ${count} seconds`;
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+<div id="content">
+    <div id="spinner" class="spinner">
+        <div class="bounce1"></div>
+        <div class="bounce2"></div>
+        <div class="bounce3"></div>
+    </div>
+    <p id="loadingText">please wait</p>
+    <button id="retryNow" class="btn" onclick="reload()">retry now?</button>
+</div>
+</body>
+</html>
